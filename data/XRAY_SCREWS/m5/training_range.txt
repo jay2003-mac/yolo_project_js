@@ -1,0 +1,2 @@
+# Rotation and translation ranges for training
+-180 180 -180 180 -180 180 -500 500 -500 500 100 1000

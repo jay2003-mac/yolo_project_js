@@ -1,0 +1,4 @@
+# Rotation and translation ranges for training
+# Format: rx_min rx_max ry_min ry_max rz_min rz_max tx_min tx_max ty_min ty_max tz_min tz_max
+# Rotation in degrees, Translation in millimeters
+-180 180 -180 180 -180 180 -500 500 -500 500 100 1000

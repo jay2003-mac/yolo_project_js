@@ -1,0 +1,27 @@
+# All Screw Types Detection Dataset (M3, M4, M5, M6)
+
+# Combined training path
+train: ../data/XRAY_SCREWS/all/train.txt
+val: ../data/XRAY_SCREWS/all/test.txt
+test: ../data/XRAY_SCREWS/all/test.txt
+
+# Note: Use separate configs for single-class training
+# This is for multi-class detection
+
+# Background augmentation
+background_path: "../data/XRAY_SCREWS/VOC_background"
+
+# Keypoints
+coords: 18
+
+# All screw types
+names: ["m3", "m4", "m5", "m6"]
+nc: 4  # 4 classes
+
+# Camera intrinsics (same for all)
+fx: 1200.0
+fy: 1200.0
+u0: 320.0
+v0: 240.0
+
+gpus: 0

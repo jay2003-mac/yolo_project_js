@@ -1,0 +1,39 @@
+# YOLOv5-6D Pose Estimation Hyperparameters - SCREW DETECTION
+
+# Learning rate schedule
+lr0: 0.001              # Initial learning rate
+lrf: 0.00001            # Final learning rate (lr0 * lrf)
+momentum: 0.937         # SGM momentum
+weight_decay: 0.0005    # Optimizer weight decay
+warmup_epochs: 3        # Warmup epochs
+warmup_momentum: 0.8    # Warmup momentum
+warmup_bias_lr: 0.1     # Warmup initial bias lr
+
+# Anchor settings
+anchor_t: 4.0           # Target-anchor threshold
+
+# Loss weights
+box: 7.5                # Box coordinate loss weight
+cls: 37.4               # Class loss weight
+obj: 81.0               # Objectness loss weight
+obj_pw: 1.0             # Objectness loss power
+
+# Data augmentation
+hsv_h: 0.015            # HSV-Hue augmentation
+hsv_s: 0.7              # HSV-Saturation augmentation
+hsv_v: 0.4              # HSV-Value augmentation
+degrees: 10.0           # Rotation angle (+/- degrees)
+translate: 0.1          # Translation (+/- fraction)
+scale: 0.5              # Scale augmentation (+/- gain)
+flipud: 0.0             # Flip up-down probability
+fliplr: 0.5             # Flip left-right probability
+mosaic: 1.0             # Mosaic augmentation (1.0 = enabled)
+mixup: 0.0              # Mixup augmentation
+
+# Pose-specific
+pretrain_epochs: 10     # Pre-training phase (detection only)
+lr_factor: 0.1          # Learning rate reduction factor
+perspective: 0.0        # Perspective augmentation
+
+# Copy settings (internal use)
+copy_paste: 0.0         # Segment copy-paste

@@ -1,0 +1,32 @@
+# M3 Screw Detection Dataset
+
+train: ../data/XRAY_SCREWS/m3/train.txt
+val: ../data/XRAY_SCREWS/m3/test.txt
+test: ../data/XRAY_SCREWS/m3/test.txt
+
+# 3D Screw Model
+mesh: ../data/XRAY_SCREWS/m3/m3.ply
+tr_range: ../data/XRAY_SCREWS/m3/training_range.txt
+backup: ../results/backups/m3
+
+# Classes
+names: ["m3"]
+
+# Background augmentation
+background_path: "../data/XRAY_SCREWS/VOC_background"
+
+# Keypoints (9 points × 2 coords = 18)
+coords: 18
+
+# Screw specifications
+diam: 3.0     # Diameter in mm
+nc: 1         # Number of classes
+
+# Camera intrinsics (UPDATE WITH YOUR CALIBRATION!)
+fx: 1200.0    # Focal length X (pixels)
+fy: 1200.0    # Focal length Y (pixels)
+u0: 320.0     # Principal point X (pixels)
+v0: 240.0     # Principal point Y (pixels)
+
+# GPU
+gpus: 0

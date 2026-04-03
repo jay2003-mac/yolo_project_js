@@ -1,0 +1,31 @@
+# M6 Screw Detection Dataset
+
+train: ../data/XRAY_SCREWS/m6/train.txt
+val: ../data/XRAY_SCREWS/m6/test.txt
+test: ../data/XRAY_SCREWS/m6/test.txt
+
+# 3D Screw Model
+mesh: ../data/XRAY_SCREWS/m6/m6.ply
+tr_range: ../data/XRAY_SCREWS/m6/training_range.txt
+backup: ../results/backups/m6
+
+# Classes
+names: ["m6"]
+
+# Background augmentation
+background_path: "../data/XRAY_SCREWS/VOC_background"
+
+# Keypoints
+coords: 18
+
+# Screw specifications
+diam: 6.0
+nc: 1
+
+# Camera intrinsics
+fx: 1200.0
+fy: 1200.0
+u0: 320.0
+v0: 240.0
+
+gpus: 0
