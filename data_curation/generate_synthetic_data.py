@@ -438,13 +438,21 @@ class DatasetGenerator:
 
 def main():
     """Main entry point"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Generate synthetic X-ray screw dataset')
+    parser.add_argument('--num-images', type=int, default=50, 
+                        help='Number of images per screw type (default: 50)')
+    args = parser.parse_args()
+    
     project_root = Path(__file__).parent.parent
     
     print("\n🔧 Synthetic X-ray Screw Dataset Generator")
     print(f"📁 Project root: {project_root}")
+    print(f"📊 Dataset size: {args.num_images} images per screw type ({args.num_images * 4} total)")
     
     generator = DatasetGenerator(str(project_root))
-    generator.generate_dataset(num_images_per_screw=50)
+    generator.generate_dataset(num_images_per_screw=args.num_images)
     
     print("\n📝 Next steps:")
     print("1. Run: python data_curation/validate_dataset.py --dataset data/XRAY_SCREWS/m3")

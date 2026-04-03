@@ -72,14 +72,11 @@ class ScrewDataset(Dataset):
         
         # Extract 9 keypoints (18 values)
         keypoints = np.array([float(x) for x in parts[1:19]], dtype=np.float32)
-        # keypoints are normalized [0, 1], scale to image size
-        keypoints_scaled = keypoints.copy()
-        keypoints_scaled[0::2] = keypoints[0::2] * self.img_size  # x coords
-        keypoints_scaled[1::2] = keypoints[1::2] * self.img_size  # y coords
+        # keypoints are normalized [0, 1], keep them normalized for MSE loss
         
         # Create target tensor: [class_id, keypoints_x, keypoints_y]
-        # Format: [class_id, x0, y0, x1, y1, ..., x8, y8]
-        target = np.concatenate([[class_id], keypoints_scaled])
+        # Format: [class_id, x0, y0, x1, y1, ..., x8, y8] (all normalized 0-1)
+        target = np.concatenate([[class_id], keypoints])
         
         return {
             'image': torch.from_numpy(image),
@@ -151,6 +148,8 @@ class SimpleScrewDetector(nn.Module):
         
         class_out = self.class_head(features)
         keypoint_out = self.keypoint_head(features)
+        # Sigmoid to constrain keypoints to [0, 1] range
+        keypoint_out = torch.sigmoid(keypoint_out)
         
         return class_out, keypoint_out
 
@@ -213,6 +212,7 @@ class Trainer:
             num_classes=4,  # M3, M4, M5, M6
             num_keypoints=9
         )
+        model = model.float()
         model.to(self.device)
         
         total_params = sum(p.numel() for p in model.parameters())
@@ -228,19 +228,19 @@ class Trainer:
         
         pbar = tqdm.tqdm(train_loader, desc="Training")
         for batch in pbar:
-            images = batch['image'].to(self.device)
-            targets = batch['target'].to(self.device)
+            images = batch['image'].to(self.device).float()
+            targets = batch['target'].to(self.device).float()
             
             # Forward pass
             class_out, kpt_out = model(images)
             
             # Loss computation
             class_ids = targets[:, 0].long()
-            keypoints_gt = targets[:, 1:].reshape(targets.shape[0], 9, 2)
+            keypoints_gt = targets[:, 1:].reshape(targets.shape[0], 9, 2).float()
             
             loss_cls = criterion_cls(class_out, class_ids)
             loss_kpt = criterion_kpt(
-                kpt_out.reshape(kpt_out.shape[0], 9, 2),
+                kpt_out.reshape(kpt_out.shape[0], 9, 2).float(),
                 keypoints_gt
             )
             
@@ -261,6 +261,7 @@ class Trainer:
         """Validate model"""
         model.eval()
         total_loss = 0
+        total_kpt_error = 0
         correct = 0
         
         criterion_cls = nn.CrossEntropyLoss()
@@ -268,29 +269,31 @@ class Trainer:
         
         with torch.no_grad():
             for batch in tqdm.tqdm(test_loader, desc="Validating"):
-                images = batch['image'].to(self.device)
-                targets = batch['target'].to(self.device)
+                images = batch['image'].to(self.device).float()
+                targets = batch['target'].to(self.device).float()
                 
                 class_out, kpt_out = model(images)
                 
                 class_ids = targets[:, 0].long()
-                keypoints_gt = targets[:, 1:].reshape(targets.shape[0], 9, 2)
+                keypoints_gt = targets[:, 1:].reshape(targets.shape[0], 9, 2).float()
                 
                 loss_cls = criterion_cls(class_out, class_ids)
                 loss_kpt = criterion_kpt(
-                    kpt_out.reshape(kpt_out.shape[0], 9, 2),
+                    kpt_out.reshape(kpt_out.shape[0], 9, 2).float(),
                     keypoints_gt
                 )
                 
                 loss = loss_cls + loss_kpt
                 total_loss += loss.item()
+                total_kpt_error += loss_kpt.item()
                 
                 correct += (class_out.argmax(1) == class_ids).sum().item()
         
         avg_loss = total_loss / len(test_loader)
-        accuracy = correct / len(test_loader.dataset) * 100
+        keypoint_error = total_kpt_error / len(test_loader)
+        class_accuracy = correct / len(test_loader.dataset) * 100
         
-        return avg_loss, accuracy
+        return avg_loss, keypoint_error
     
     def train(self):
         """Full training loop"""
@@ -322,11 +325,11 @@ class Trainer:
             )
             
             # Validate
-            val_loss, val_acc = self.validate(model, test_loader)
+            val_loss, val_kpt_error = self.validate(model, test_loader)
             
             scheduler.step()
             
-            logger.info(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2f}%")
+            logger.info(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Keypoint Error: {val_kpt_error:.4f}")
             
             # Save checkpoint
             if val_loss < best_loss:
